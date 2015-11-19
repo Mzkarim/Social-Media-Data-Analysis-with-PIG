@@ -1,0 +1,20 @@
+#(Pig Latin) Find first 3 twitter handles mentioned in a tweet using regex_extract() function
+
+A = load '/user/lab/pig/full_text.txt' AS (id : chararray, ts : chararray, location : chararray, lat : float, lon : float, tweet : chararray);
+B = foreach a generate id, tweet, LOWER(tweet) as tweet;
+C = foreach b generate id, tweet, REGEX_EXTRACT_ALL(tweet, '.*@user_(\\S{8}).*@user_(\\S{8}).*@user_(\\S{8}).*@user_(\\S{8}).*') as tweet;
+D = filter c by SIZE(tweet)>2;
+E = limit d 3;
+dump E;
+
+
+#(Pig Latin) Find 3 most popular topics (hashtags)
+A = load '/user/lab/pig/full_text.txt' AS (id : chararray, ts : chararray, location : chararray, lat : float, lon : float, tweet : chararray);
+B = foreach a generate id, FLATTEN(TOKENIZE(tweet)) as token;
+C = foreach b generate REGEX_EXTRACT(token,'(#\\w+)', 1) as hashtag;
+D = filter c by (SIZE(hashtag) > 0);
+E = group d by hashtag;
+F = foreach e generate group as token, COUNT(d) as cnt;
+G = order f by cntdesc;
+H = limit g 3;
+dump H;
